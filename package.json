@@ -1,6 +1,6 @@
 {
   "name": "@acm-js/system",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Base acm system wrapper",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -31,7 +31,7 @@
     "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs",
     "version": "standard-version",
     "clean": "trash build test",
-    "prepare-release": "run-s test cov:check doc:html version doc:publish",
+    "prepare-release": "run-s build version",
     "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('@acm-js/system must be installed with Yarn: https://yarnpkg.com/')\""
   },
   "scripts-info": {
