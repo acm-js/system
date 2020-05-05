@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@acm-js/core@^1.0.24":
-  version "1.0.24"
-  resolved "https://registry.yarnpkg.com/@acm-js/core/-/core-1.0.24.tgz#79b4e29e4141151586006a5fb102b34d0357698e"
-  integrity sha512-K97UByGySwY8RlSXDfKoUNpmycB7ICEao5fTuFFe6ja8SfmHrKpkFqX6o9KLYimK4OToKOstk4hswIuFEx+wxg==
+"@acm-js/core@^1.0.39":
+  version "1.0.39"
+  resolved "https://registry.yarnpkg.com/@acm-js/core/-/core-1.0.39.tgz#ddbcf134868ecf71ca3eddce29e6d4dfdd1693a8"
+  integrity sha512-E9VYC05VUpQsmJUS9Lu0b1VB1EJ6VrzFAq1sTwLQsllVPZ7uYwM/GXriZLBuN7iD+xBKniM6raIwp2QVqiirww==
   dependencies:
     request "^2.88.2"
     request-promise "^4.2.5"

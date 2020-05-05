@@ -1,4 +1,10 @@
-import { bind, EPeriod, IDestroyable, IUpdateable } from '@acm-js/core';
+import {
+  bind,
+  EPeriod, freeze,
+  IDestroyable,
+  IKeyable,
+  IUpdateable
+} from '@acm-js/core';
 import { EventEmitter } from 'events';
 import { Account, EAccountEventType } from './account';
 import { registry } from './account-registry';
@@ -10,6 +16,7 @@ export interface IAccountPoolOptions {
 export enum EAccountPoolEventType {
   RELEASED = 'released',
   TAKEN = 'taken',
+  DESTROYED = 'destroyed',
 }
 
 export type TPredicate = (account: Account) => boolean;
@@ -18,7 +25,7 @@ export const predicates: Record<string, TPredicate> = {
   USING: (account: Account) => !account.isAvailable,
 };
 
-export class AccountPool extends EventEmitter implements IUpdateable, IDestroyable {
+export class AccountPool extends EventEmitter implements IUpdateable, IDestroyable, IKeyable {
   public readonly type: string;
 
   protected accounts: Account[] = [];
@@ -34,6 +41,10 @@ export class AccountPool extends EventEmitter implements IUpdateable, IDestroyab
     super();
 
     this.add(...accounts);
+
+    // freeze unique key
+    // tslint:disable-next-line:no-unused-expression
+    this.uniqueKey;
   }
 
   public update() {
@@ -57,14 +68,57 @@ export class AccountPool extends EventEmitter implements IUpdateable, IDestroyab
     return null;
   }
 
-  public add(...accounts: Account[]) {
+  public query(predicate: TPredicate): Account[] {
+    return this.accounts.filter(predicate);
+  }
+
+  public getFreeAccounts() {
+    return this.query(predicates.FREE);
+  }
+
+  public destroy() {
+    // clear listeners from accounts only linked with this pool
+    this.accounts.forEach(account => (
+      this.removeAccountListeners(account)
+    ));
+
+    this.clear();
+
+    this.emit(EAccountPoolEventType.DESTROYED);
+
+    this.removeAllListeners();
+  }
+
+  public get size() {
+    return this.accounts.length;
+  }
+
+  public get freeSize() {
+    return this.getFreeAccounts().length;
+  }
+
+  public get hasFree() {
+    return this.freeSize > 0;
+  }
+
+  @freeze()
+  public get uniqueKey() {
+    return 'pool:' + this.accounts
+      .map(({ uniqueKey }) => uniqueKey)
+      .sort()
+      .join(';');
+  }
+
+  private add(...accounts: Account[]) {
     const set = new Set([
       ...this.accounts.map(account => account.uniqueKey)
     ]);
 
-    const preparedAccounts = accounts.map(account => (
-      registry.register(account)
-    )).filter(({ uniqueKey }) => {
+    const preparedAccounts = accounts.map(account => {
+      const registryItem = registry.register(account, this);
+
+      return registry.unwrapRegistryItem(registryItem);
+    }).filter(({ uniqueKey }) => {
       if (set.has(uniqueKey)) {
         return false;
       }
@@ -79,38 +133,12 @@ export class AccountPool extends EventEmitter implements IUpdateable, IDestroyab
     this.accounts.push(...preparedAccounts);
   }
 
-  public query(predicate: TPredicate): Account[] {
-    return this.accounts.filter(predicate);
-  }
+  private clear() {
+    this.accounts.forEach(account => {
+      registry.unregister(account, this);
+    });
 
-  public getFreeAccounts() {
-    return this.query(predicates.FREE);
-  }
-
-  public destroy() {
-    this.removeAllListeners();
-
-    this.accounts.forEach(account => (
-      this.removeAccountListeners(account)
-    ));
-
-    this.clear();
-  }
-
-  public clear() {
     this.accounts = [];
-  }
-
-  public get size() {
-    return this.accounts.length;
-  }
-
-  public get freeSize() {
-    return this.getFreeAccounts().length;
-  }
-
-  public get hasFree() {
-    return this.freeSize > 0;
   }
 
   private addAccountListeners(account: Account) {

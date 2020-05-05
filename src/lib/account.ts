@@ -1,4 +1,9 @@
-import { IKeyable, inherits, IUpdateable, Requestable } from '@acm-js/core';
+import {
+  freeze,
+  IKeyable,
+  IUpdateable, mixin,
+  Requestable
+} from '@acm-js/core';
 import { EventEmitter } from 'events';
 import request, {
   Options as RequestOptions,
@@ -64,15 +69,6 @@ abstract class Account extends Requestable implements IKeyable, IUpdateable {
     return super.request(options);
   }
 
-  public reset(): void {
-    this.cancelAllRequests();
-
-    this.meta.lastSentMs = 0;
-    this.meta.jar = request.jar();
-
-    this.using = false;
-  }
-
   public isAuth(): Promise<boolean> {
     return createOverloadError('isAuth');
   }
@@ -93,16 +89,32 @@ abstract class Account extends Requestable implements IKeyable, IUpdateable {
     this.prevTickAvailable = curTickAvailable;
   }
 
+  public reset(): void {
+    this.cancelAllRequests();
+
+    this.meta.lastSentMs = 0;
+    this.meta.jar = request.jar();
+
+    this.using = false;
+  }
+
+  public destroy() {
+    this.removeAllListeners();
+
+    super.destroy();
+  }
+
   public get isAvailable(): boolean {
     return !this.using
       && Date.now() - this.meta.lastSentMs > this.options.timeoutBetween;
   }
 
+  @freeze()
   public get uniqueKey() {
-    return `${this.type}${this.login}`;
+    return `${this.type}:${this.login}`;
   }
 }
 
-inherits(Account, [EventEmitter]);
+mixin(Account, [EventEmitter]);
 
 export { Account };

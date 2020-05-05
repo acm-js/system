@@ -9,31 +9,40 @@ enum ESystemType {
 class TimusAccount extends Account {
 }
 
-const account1 = new TimusAccount(
-  ESystemType.CODEFORCES,
-  'iprit',
-  '115563',
-  'IPRIT'
-);
+function createAccountPool() {
+  const account1 = new TimusAccount(
+    ESystemType.CODEFORCES,
+    'iprit',
+    '115563',
+    'IPRIT'
+  );
 
-const account2 = new TimusAccount(
-  ESystemType.CODEFORCES,
-  'iprit2',
-  '115563',
-  'IPRIT'
-);
+  const account2 = new TimusAccount(
+    ESystemType.CODEFORCES,
+    'iprit2',
+    '115563',
+    'IPRIT'
+  );
 
-const pool = new AccountPool([account1, account2, account2, account1]);
-pool.on(EAccountPoolEventType.RELEASED, console.log.bind(console, 'released'));
-pool.on(EAccountPoolEventType.TAKEN, console.log.bind(console, 'taken'));
+  return new AccountPool([account1, account2, account2, account1]);
+}
 
-setInterval(() => {
+const pool = createAccountPool();
+
+pool.on(EAccountPoolEventType.TAKEN, ({ uniqueKey }) => console.log(`Taken: ${uniqueKey}`));
+pool.on(EAccountPoolEventType.RELEASED, ({ uniqueKey }) => console.log(`Released: ${uniqueKey}`));
+pool.on(EAccountPoolEventType.DESTROYED, () => {
+  clearInterval(updateInterval);
+  accounts = [];
+  console.log(`Pool "${pool.uniqueKey}" destroyed`);
+});
+
+const updateInterval = setInterval(() => {
   pool.update();
-  // @ts-ignore
-  console.log(pool.freeSize, pool.roundRobinIndex);
+  console.log('Free size:', pool.freeSize);
 }, 1000);
 
-const accounts: Account[] = [];
+let accounts: Account[] = [];
 
 function take() {
   accounts.push(pool.take());
@@ -48,6 +57,9 @@ setTimeout(() => {
 
   setTimeout(() => {
     take();
+
+    // @ts-ignore
+    // console.log(registry.registry.get(account1.uniqueKey).pools[0].uniqueKey);
 
     pool.destroy();
 
