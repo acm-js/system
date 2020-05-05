@@ -31,7 +31,9 @@
     "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs",
     "version": "standard-version",
     "clean": "trash build test",
+    "prepare-release-next": "run-s test cov:check doc:html version doc:publish",
     "prepare-release": "run-s build version",
+    "release": "git add . && git commit -m \"chore(update): new changes\" && run-s prepare-release && git push --follow-tags origin master",
     "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('@acm-js/system must be installed with Yarn: https://yarnpkg.com/')\""
   },
   "scripts-info": {
@@ -50,7 +52,7 @@
     "node": ">=12.0"
   },
   "dependencies": {
-    "@acm-js/core": "^1.0.23",
+    "@acm-js/core": "^1.0.24",
     "bluebird": "latest",
     "debug": "latest",
     "dotenv": "^8.2.0",

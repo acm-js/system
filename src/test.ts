@@ -9,24 +9,42 @@ enum ESystemType {
 class TimusAccount extends Account {
 }
 
-const account = new TimusAccount(
+const account1 = new TimusAccount(
   ESystemType.CODEFORCES,
   'iprit',
   '115563',
   'IPRIT'
 );
 
-const pool = new AccountPool([account]);
+const account2 = new TimusAccount(
+  ESystemType.CODEFORCES,
+  'iprit2',
+  '115563',
+  'IPRIT'
+);
+
+const pool = new AccountPool();
+pool.add(account1, account2, account2, account1);
 pool.on(EAccountPoolEventType.RELEASED, console.log);
 
 setInterval(() => {
   pool.update();
+  // @ts-ignore
+  console.log(pool.freeSize, pool.roundRobinIndex);
 }, 1000);
 
 setTimeout(() => {
-  account.take();
+  let account = pool.take();
 
   setTimeout(() => {
-    account.free();
+    account?.free();
+
+    setTimeout(() => {
+      account = pool.take();
+
+      setTimeout(() => {
+        account?.free();
+      }, 2000);
+    }, 3000);
   }, 2000);
 }, 3000);

@@ -34,12 +34,16 @@ abstract class Account extends Requestable implements IKeyable, IUpdateable {
     super();
   }
 
-  public take() {
+  public take(): this {
     this.using = true;
+
+    return this;
   }
 
-  public free() {
+  public free(): this {
     this.using = false;
+
+    return this;
   }
 
   public signIn(): Promise<void> {
@@ -84,7 +88,7 @@ abstract class Account extends Requestable implements IKeyable, IUpdateable {
       ? EAccountEventType.TAKEN
       : EAccountEventType.RELEASED;
 
-    this.emit(eventType);
+    this.emit(eventType, this);
 
     this.prevTickAvailable = curTickAvailable;
   }

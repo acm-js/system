@@ -1,4 +1,4 @@
-import { EPeriod, IUpdateable } from '@acm-js/core';
+import { bind, EPeriod, IDestroyable, IUpdateable } from '@acm-js/core';
 import { EventEmitter } from 'events';
 import { Account, EAccountEventType } from './account';
 import { registry } from './account-registry';
@@ -8,7 +8,8 @@ export interface IAccountPoolOptions {
 }
 
 export enum EAccountPoolEventType {
-  RELEASED = 'released'
+  RELEASED = 'released',
+  TAKEN = 'taken',
 }
 
 export type TPredicate = (account: Account) => boolean;
@@ -17,10 +18,12 @@ export const predicates: Record<string, TPredicate> = {
   USING: (account: Account) => !account.isAvailable,
 };
 
-export class AccountPool extends EventEmitter implements IUpdateable {
+export class AccountPool extends EventEmitter implements IUpdateable, IDestroyable {
   public readonly type: string;
 
   protected readonly accounts: Account[] = [];
+
+  private roundRobinIndex = 0;
 
   constructor(
     accounts: Account[] = [],
@@ -31,6 +34,29 @@ export class AccountPool extends EventEmitter implements IUpdateable {
     super();
 
     this.add(...accounts);
+  }
+
+  public update() {
+    for (const account of this.accounts) {
+      account.update();
+    }
+  }
+
+  public take(): Account | null {
+    const startIndex = this.roundRobinIndex;
+
+    do {
+      const account = this.accounts[this.roundRobinIndex];
+      this.roundRobinIndex = (this.roundRobinIndex + 1) % this.size;
+
+      if (account.isAvailable) {
+        this.emit(EAccountPoolEventType.TAKEN, account);
+
+        return account.take();
+      }
+    } while (startIndex !== this.roundRobinIndex);
+
+    return null;
   }
 
   public add(...accounts: Account[]) {
@@ -47,7 +73,7 @@ export class AccountPool extends EventEmitter implements IUpdateable {
       set.add(uniqueKey);
       return true;
     }).map(account => (
-      this.addListeners(account)
+      this.addAccountListeners(account)
     ));
 
     this.accounts.push(...preparedAccounts);
@@ -61,10 +87,12 @@ export class AccountPool extends EventEmitter implements IUpdateable {
     return this.query(predicates.FREE);
   }
 
-  public update() {
-    for (const account of this.accounts) {
-      account.update();
-    }
+  public destroy() {
+    this.removeAllListeners();
+
+    this.accounts.forEach(account => (
+      this.removeAccountListeners(account)
+    ));
   }
 
   public get size() {
@@ -75,9 +103,20 @@ export class AccountPool extends EventEmitter implements IUpdateable {
     return this.getFreeAccounts().length;
   }
 
-  private addListeners(account: Account): Account {
-    return account.on(EAccountEventType.RELEASED, () => {
-      this.emit(EAccountPoolEventType.RELEASED, account);
-    });
+  public get hasFree() {
+    return this.freeSize > 0;
+  }
+
+  private addAccountListeners(account: Account): Account {
+    return account.addListener(EAccountEventType.RELEASED, this.onAccountReleased);
+  }
+
+  private removeAccountListeners(account: Account): Account {
+    return account.removeListener(EAccountEventType.RELEASED, this.onAccountReleased);
+  }
+
+  @bind
+  private onAccountReleased(account: Account) {
+    this.emit(EAccountPoolEventType.RELEASED, account);
   }
 }
