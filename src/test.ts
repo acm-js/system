@@ -25,7 +25,8 @@ const account2 = new TimusAccount(
 
 const pool = new AccountPool();
 pool.add(account1, account2, account2, account1);
-pool.on(EAccountPoolEventType.RELEASED, console.log);
+pool.on(EAccountPoolEventType.RELEASED, console.log.bind(console, 'released'));
+pool.on(EAccountPoolEventType.TAKEN, console.log.bind(console, 'taken'));
 
 setInterval(() => {
   pool.update();
