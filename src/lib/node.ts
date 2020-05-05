@@ -7,9 +7,10 @@ export class Node extends EventEmitter implements INode {
   }
 
   public disconnect(node: INode): this {
-    return this;s
+    return this;
   }
 
   public destroy(): void {
+    return;
   }
 }
