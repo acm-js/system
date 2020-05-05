@@ -21,7 +21,7 @@ export const predicates: Record<string, TPredicate> = {
 export class AccountPool extends EventEmitter implements IUpdateable, IDestroyable {
   public readonly type: string;
 
-  protected readonly accounts: Account[] = [];
+  protected accounts: Account[] = [];
 
   private roundRobinIndex = 0;
 
@@ -49,9 +49,7 @@ export class AccountPool extends EventEmitter implements IUpdateable, IDestroyab
       const account = this.accounts[this.roundRobinIndex];
       this.roundRobinIndex = (this.roundRobinIndex + 1) % this.size;
 
-      if (account.isAvailable) {
-        this.emit(EAccountPoolEventType.TAKEN, account);
-
+      if (account?.isAvailable) {
         return account.take();
       }
     } while (startIndex !== this.roundRobinIndex);
@@ -72,9 +70,11 @@ export class AccountPool extends EventEmitter implements IUpdateable, IDestroyab
       }
       set.add(uniqueKey);
       return true;
-    }).map(account => (
-      this.addAccountListeners(account)
-    ));
+    }).map(account => {
+      this.addAccountListeners(account);
+
+      return account;
+    });
 
     this.accounts.push(...preparedAccounts);
   }
@@ -93,6 +93,12 @@ export class AccountPool extends EventEmitter implements IUpdateable, IDestroyab
     this.accounts.forEach(account => (
       this.removeAccountListeners(account)
     ));
+
+    this.clear();
+  }
+
+  public clear() {
+    this.accounts = [];
   }
 
   public get size() {
@@ -107,12 +113,19 @@ export class AccountPool extends EventEmitter implements IUpdateable, IDestroyab
     return this.freeSize > 0;
   }
 
-  private addAccountListeners(account: Account): Account {
-    return account.addListener(EAccountEventType.RELEASED, this.onAccountReleased);
+  private addAccountListeners(account: Account) {
+    account.addListener(EAccountEventType.TAKEN, this.onAccountTaken);
+    account.addListener(EAccountEventType.RELEASED, this.onAccountReleased);
   }
 
-  private removeAccountListeners(account: Account): Account {
-    return account.removeListener(EAccountEventType.RELEASED, this.onAccountReleased);
+  private removeAccountListeners(account: Account) {
+    account.removeListener(EAccountEventType.TAKEN, this.onAccountTaken);
+    account.removeListener(EAccountEventType.RELEASED, this.onAccountReleased);
+  }
+
+  @bind
+  private onAccountTaken(account: Account) {
+    this.emit(EAccountPoolEventType.TAKEN, account);
   }
 
   @bind
