@@ -52,7 +52,7 @@
     "node": ">=12.0"
   },
   "dependencies": {
-    "@acm-js/core": "^1.0.39",
+    "@acm-js/core": "^1.0.40",
     "bluebird": "latest",
     "debug": "latest",
     "dotenv": "^8.2.0",

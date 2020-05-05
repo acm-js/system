@@ -10,8 +10,8 @@ import request, {
   Options as RequestOptions,
   RequestPromise
 } from 'request-promise';
-import { IAccountMeta, IAccountOptions } from '../types/account';
-import { createOverloadError } from '../utils/internal';
+import { IAccountMeta, IAccountOptions } from '../../types/account';
+import { createOverloadError } from '../../utils/internal';
 
 export enum EAccountEventType {
   TAKEN = 'taken',

@@ -1,7 +1,7 @@
 /* tslint:disable:no-console */
 import Promise from 'bluebird';
-import { Account } from './lib/account';
-import { AccountPool, EAccountPoolEventType } from './lib/account-pool';
+import { Account } from './lib/account/account';
+import { AccountPool, EAccountPoolEventType } from './lib/account/account-pool';
 
 enum ESystemType {
   CODEFORCES = 'cf'

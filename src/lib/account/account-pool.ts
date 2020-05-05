@@ -1,13 +1,13 @@
 import {
   bind,
-  EPeriod,
+  ETimePeriod,
   freeze,
   IDestroyable,
   IKeyable,
   IUpdateable
 } from '@acm-js/core';
 import { EventEmitter } from 'events';
-import { Account, EAccountEventType } from './account';
+import { Account, EAccountEventType } from './';
 import { registry } from './account-registry';
 
 export interface IAccountPoolOptions {
@@ -37,7 +37,7 @@ export class AccountPool extends EventEmitter
   constructor(
     accounts: Account[] = [],
     private readonly options: IAccountPoolOptions = {
-      inactivityTimeout: EPeriod.MINUTE * 5
+      inactivityTimeout: ETimePeriod.MINUTE * 5
     }
   ) {
     super();

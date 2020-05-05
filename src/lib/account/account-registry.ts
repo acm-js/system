@@ -1,10 +1,10 @@
 import { Registry } from '@acm-js/core';
-import { Account } from './account';
+import { Account } from './';
 import { AccountPool } from './account-pool';
 
 interface RegistryItem {
   item: Account;
-  pools: AccountPool[]; // pools where account locates
+  pools: AccountPool[]; // pools where account is located
 }
 
 class AccountRegistry extends Registry<Account, RegistryItem> {
