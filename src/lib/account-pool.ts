@@ -44,7 +44,7 @@ export class AccountPool extends EventEmitter
 
     this.add(...accounts);
 
-    // freeze unique key
+    // compute and freeze unique key
     // tslint:disable-next-line:no-unused-expression
     this.uniqueKey;
   }
