@@ -1,13 +1,13 @@
+/* tslint:disable:no-console */
 import Promise from 'bluebird';
 import { Account } from './lib/account';
 import { AccountPool, EAccountPoolEventType } from './lib/account-pool';
 
 enum ESystemType {
-  CODEFORCES = 'cf',
+  CODEFORCES = 'cf'
 }
 
-class TimusAccount extends Account {
-}
+class TimusAccount extends Account {}
 
 function createAccountPool() {
   const account1 = new TimusAccount(
@@ -29,8 +29,12 @@ function createAccountPool() {
 
 const pool = createAccountPool();
 
-pool.on(EAccountPoolEventType.TAKEN, ({ uniqueKey }) => console.log(`Taken: ${uniqueKey}`));
-pool.on(EAccountPoolEventType.RELEASED, ({ uniqueKey }) => console.log(`Released: ${uniqueKey}`));
+pool.on(EAccountPoolEventType.TAKEN, ({ uniqueKey }) =>
+  console.log(`Taken: ${uniqueKey}`)
+);
+pool.on(EAccountPoolEventType.RELEASED, ({ uniqueKey }) =>
+  console.log(`Released: ${uniqueKey}`)
+);
 pool.on(EAccountPoolEventType.DESTROYED, () => {
   clearInterval(updateInterval);
   accounts = [];

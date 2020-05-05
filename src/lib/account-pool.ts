@@ -1,6 +1,7 @@
 import {
   bind,
-  EPeriod, freeze,
+  EPeriod,
+  freeze,
   IDestroyable,
   IKeyable,
   IUpdateable
@@ -16,16 +17,17 @@ export interface IAccountPoolOptions {
 export enum EAccountPoolEventType {
   RELEASED = 'released',
   TAKEN = 'taken',
-  DESTROYED = 'destroyed',
+  DESTROYED = 'destroyed'
 }
 
 export type TPredicate = (account: Account) => boolean;
 export const predicates: Record<string, TPredicate> = {
   FREE: (account: Account) => account.isAvailable,
-  USING: (account: Account) => !account.isAvailable,
+  USING: (account: Account) => !account.isAvailable
 };
 
-export class AccountPool extends EventEmitter implements IUpdateable, IDestroyable, IKeyable {
+export class AccountPool extends EventEmitter
+  implements IUpdateable, IDestroyable, IKeyable {
   public readonly type: string;
 
   protected accounts: Account[] = [];
@@ -78,9 +80,7 @@ export class AccountPool extends EventEmitter implements IUpdateable, IDestroyab
 
   public destroy() {
     // clear listeners from accounts only linked with this pool
-    this.accounts.forEach(account => (
-      this.removeAccountListeners(account)
-    ));
+    this.accounts.forEach(account => this.removeAccountListeners(account));
 
     this.clear();
 
@@ -103,32 +103,36 @@ export class AccountPool extends EventEmitter implements IUpdateable, IDestroyab
 
   @freeze()
   public get uniqueKey() {
-    return 'pool:' + this.accounts
-      .map(({ uniqueKey }) => uniqueKey)
-      .sort()
-      .join(';');
+    return (
+      'pool:' +
+      this.accounts
+        .map(({ uniqueKey }) => uniqueKey)
+        .sort()
+        .join(';')
+    );
   }
 
   private add(...accounts: Account[]) {
-    const set = new Set([
-      ...this.accounts.map(account => account.uniqueKey)
-    ]);
+    const set = new Set([...this.accounts.map(account => account.uniqueKey)]);
 
-    const preparedAccounts = accounts.map(account => {
-      const registryItem = registry.register(account, this);
+    const preparedAccounts = accounts
+      .map(account => {
+        const registryItem = registry.register(account, this);
 
-      return registry.unwrapRegistryItem(registryItem);
-    }).filter(({ uniqueKey }) => {
-      if (set.has(uniqueKey)) {
-        return false;
-      }
-      set.add(uniqueKey);
-      return true;
-    }).map(account => {
-      this.addAccountListeners(account);
+        return registry.unwrapRegistryItem(registryItem);
+      })
+      .filter(({ uniqueKey }) => {
+        if (set.has(uniqueKey)) {
+          return false;
+        }
+        set.add(uniqueKey);
+        return true;
+      })
+      .map(account => {
+        this.addAccountListeners(account);
 
-      return account;
-    });
+        return account;
+      });
 
     this.accounts.push(...preparedAccounts);
   }

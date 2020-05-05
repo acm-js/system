@@ -1,7 +1,8 @@
 import {
   freeze,
   IKeyable,
-  IUpdateable, mixin,
+  IUpdateable,
+  mixin,
   Requestable
 } from '@acm-js/core';
 import { EventEmitter } from 'events';
@@ -14,7 +15,7 @@ import { createOverloadError } from '../utils/internal';
 
 export enum EAccountEventType {
   TAKEN = 'taken',
-  RELEASED = 'released',
+  RELEASED = 'released'
 }
 
 interface Account extends Requestable, EventEmitter {}
@@ -105,8 +106,10 @@ abstract class Account extends Requestable implements IKeyable, IUpdateable {
   }
 
   public get isAvailable(): boolean {
-    return !this.using
-      && Date.now() - this.meta.lastSentMs > this.options.timeoutBetween;
+    return (
+      !this.using &&
+      Date.now() - this.meta.lastSentMs > this.options.timeoutBetween
+    );
   }
 
   @freeze()
