@@ -31,7 +31,7 @@ class AccountRegistry extends Registry<Account, RegistryItem> {
     return registryItem.item;
   }
 
-  public unregister(item: Account, target?: AccountPool) {
+  public unregister(item: Account, target?: AccountPool): void {
     const key = item.uniqueKey;
     const { pools } = this.registry.get(key);
 

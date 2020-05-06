@@ -33,6 +33,7 @@ export class AccountPool extends EventEmitter
   protected accounts: Account[] = [];
 
   private roundRobinIndex = 0;
+  private lastUsedAt: number = Date.now();
 
   constructor(
     accounts: Account[] = [],
@@ -50,12 +51,18 @@ export class AccountPool extends EventEmitter
   }
 
   public update() {
+    if (this.isExpired) {
+      return this.destroy();
+    }
+
     for (const account of this.accounts) {
       account.update();
     }
   }
 
   public take(): Account | null {
+    this.updateLastUsed();
+
     const startIndex = this.roundRobinIndex;
 
     do {
@@ -137,6 +144,10 @@ export class AccountPool extends EventEmitter
     this.accounts.push(...preparedAccounts);
   }
 
+  private updateLastUsed() {
+    this.lastUsedAt = Date.now();
+  }
+
   private clear() {
     this.accounts.forEach(account => {
       registry.unregister(account, this);
@@ -157,11 +168,19 @@ export class AccountPool extends EventEmitter
 
   @bind
   private onAccountTaken(account: Account) {
+    this.updateLastUsed();
+
     this.emit(EAccountPoolEventType.TAKEN, account);
   }
 
   @bind
   private onAccountReleased(account: Account) {
+    this.updateLastUsed();
+
     this.emit(EAccountPoolEventType.RELEASED, account);
+  }
+
+  private get isExpired() {
+    return Date.now() - this.lastUsedAt >= this.options.inactivityTimeout;
   }
 }

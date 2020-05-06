@@ -1,7 +1,6 @@
 /* tslint:disable:no-console */
 import Promise from 'bluebird';
-import { Account } from './lib/account/account';
-import { AccountPool, EAccountPoolEventType } from './lib/account/account-pool';
+import { Account, AccountPool, EAccountPoolEventType } from './lib/account';
 
 enum ESystemType {
   CODEFORCES = 'cf'
@@ -24,7 +23,10 @@ function createAccountPool() {
     'IPRIT'
   );
 
-  return new AccountPool([account1, account2, account2, account1]);
+  return new AccountPool(
+    [account1, account2, account2, account1],
+    { inactivityTimeout: 5000 }
+  );
 }
 
 const pool = createAccountPool();
@@ -61,11 +63,6 @@ setTimeout(() => {
 
   setTimeout(() => {
     take();
-
-    // @ts-ignore
-    // console.log(registry.registry.get(account1.uniqueKey).pools[0].uniqueKey);
-
-    pool.destroy();
 
     setTimeout(() => {
       release();
