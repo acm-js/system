@@ -1,7 +1,8 @@
 /* tslint:disable:no-console max-classes-per-file */
-import Promise from 'bluebird';
+import { delay } from '@acm-js/core';
 import { ENodeEvent, Node } from './lib';
 import { Account, AccountPool, EAccountPoolEvent } from './lib/account';
+import { ENodeContextEvent, NodeContext } from './lib/node/node-context';
 //
 // enum ESystemType {
 //   CODEFORCES = 'cf'
@@ -94,24 +95,29 @@ class DoubleNode extends Node {
 }
 
 class HalfNode extends Node {
-  public operation(data: number): number {
-    return data / 2;
+  public operation(data: number): Promise<number> {
+    return delay(Math.random() * 1000).then(() => data / 2);
   }
 }
 
-const nodeA = new IncrementNode();
-const nodeB = new DoubleNode();
-const nodeC = new DecrementNode();
-const nodeD = new DoubleNode();
-const nodeE = new IncrementNode();
-const nodeF = new HalfNode();
+const context = new NodeContext();
+
+const nodeA = new IncrementNode(context);
+const nodeB = new DoubleNode(context);
+const nodeC = new DecrementNode(context);
+const nodeD = new DoubleNode(context);
+const nodeE = new HalfNode(context);
+const nodeF = new HalfNode(context);
 
 nodeA.connect(nodeB);
 nodeB.connect(nodeC);
 nodeC.connect(nodeD);
 nodeD.connect(nodeE);
 nodeE.connect(nodeF);
+nodeF.connect(context.destination);
+nodeF.connect(nodeA);
+nodeF.connect(nodeB);
 
 nodeA.input(1);
 
-nodeF.on(ENodeEvent.OUTPUT, console.log);
+context.on(ENodeContextEvent.FINISHED, console.log);

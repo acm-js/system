@@ -1,6 +1,7 @@
 import { generateKey, Key } from '@acm-js/core';
 import { EventEmitter } from 'events';
-import { INode } from '../types';
+import { INode } from '../../types';
+import { NodeContext } from './node-context';
 
 export enum ENodeEvent {
   INPUT = 'input',
@@ -12,6 +13,12 @@ export class Node extends EventEmitter implements INode<any, any> {
   public readonly uniqueKey = generateKey();
 
   protected connectedNodes: Map<Key, Node> = new Map();
+
+  constructor(
+    public readonly context: NodeContext
+  ) {
+    super();
+  }
 
   public input(data: any): this {
     this.emit(ENodeEvent.INPUT, data);
