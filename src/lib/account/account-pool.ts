@@ -7,14 +7,14 @@ import {
   IUpdateable
 } from '@acm-js/core';
 import { EventEmitter } from 'events';
-import { Account, EAccountEventType } from './';
+import { Account, EAccountEvent } from './';
 import { registry } from './account-registry';
 
 export interface IAccountPoolOptions {
   inactivityTimeout?: number;
 }
 
-export enum EAccountPoolEventType {
+export enum EAccountPoolEvent {
   RELEASED = 'released',
   TAKEN = 'taken',
   DESTROYED = 'destroyed'
@@ -91,7 +91,7 @@ export class AccountPool extends EventEmitter
 
     this.clear();
 
-    this.emit(EAccountPoolEventType.DESTROYED);
+    this.emit(EAccountPoolEvent.DESTROYED);
 
     this.removeAllListeners();
   }
@@ -157,27 +157,27 @@ export class AccountPool extends EventEmitter
   }
 
   private addAccountListeners(account: Account) {
-    account.addListener(EAccountEventType.TAKEN, this.onAccountTaken);
-    account.addListener(EAccountEventType.RELEASED, this.onAccountReleased);
+    account.addListener(EAccountEvent.TAKEN, this.onAccountTaken);
+    account.addListener(EAccountEvent.RELEASED, this.onAccountReleased);
   }
 
   private removeAccountListeners(account: Account) {
-    account.removeListener(EAccountEventType.TAKEN, this.onAccountTaken);
-    account.removeListener(EAccountEventType.RELEASED, this.onAccountReleased);
+    account.removeListener(EAccountEvent.TAKEN, this.onAccountTaken);
+    account.removeListener(EAccountEvent.RELEASED, this.onAccountReleased);
   }
 
   @bind
   private onAccountTaken(account: Account) {
     this.updateLastUsed();
 
-    this.emit(EAccountPoolEventType.TAKEN, account);
+    this.emit(EAccountPoolEvent.TAKEN, account);
   }
 
   @bind
   private onAccountReleased(account: Account) {
     this.updateLastUsed();
 
-    this.emit(EAccountPoolEventType.RELEASED, account);
+    this.emit(EAccountPoolEvent.RELEASED, account);
   }
 
   private get isExpired() {

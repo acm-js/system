@@ -1,75 +1,117 @@
-/* tslint:disable:no-console */
+/* tslint:disable:no-console max-classes-per-file */
 import Promise from 'bluebird';
-import { Account, AccountPool, EAccountPoolEventType } from './lib/account';
+import { ENodeEvent, Node } from './lib';
+import { Account, AccountPool, EAccountPoolEvent } from './lib/account';
+//
+// enum ESystemType {
+//   CODEFORCES = 'cf'
+// }
+//
+// class TimusAccount extends Account {}
+//
+// function createAccountPool() {
+//   const account1 = new TimusAccount(
+//     ESystemType.CODEFORCES,
+//     'iprit',
+//     '115563',
+//     'IPRIT'
+//   );
+//
+//   const account2 = new TimusAccount(
+//     ESystemType.CODEFORCES,
+//     'iprit2',
+//     '115563',
+//     'IPRIT'
+//   );
+//
+//   return new AccountPool(
+//     [account1, account2, account2, account1],
+//     { inactivityTimeout: 5000 }
+//   );
+// }
+//
+// const pool = createAccountPool();
+//
+// pool.on(EAccountPoolEvent.TAKEN, ({ uniqueKey }) =>
+//   console.log(`Taken: ${uniqueKey}`)
+// );
+// pool.on(EAccountPoolEvent.RELEASED, ({ uniqueKey }) =>
+//   console.log(`Released: ${uniqueKey}`)
+// );
+// pool.on(EAccountPoolEvent.DESTROYED, () => {
+//   clearInterval(updateInterval);
+//   accounts = [];
+//   console.log(`Pool "${pool.uniqueKey}" destroyed`);
+// });
+//
+// const updateInterval = setInterval(() => {
+//   pool.update();
+//   console.log('Free size:', pool.freeSize);
+// }, 1000);
+//
+// let accounts: Account[] = [];
+//
+// function take() {
+//   accounts.push(pool.take());
+// }
+//
+// function release() {
+//   accounts.pop()?.free();
+// }
+//
+// setTimeout(() => {
+//   take();
+//
+//   setTimeout(() => {
+//     take();
+//
+//     setTimeout(() => {
+//       release();
+//
+//       setTimeout(() => {
+//         release();
+//       }, 2000);
+//     }, 3000);
+//   }, 2000);
+// }, 3000);
 
-enum ESystemType {
-  CODEFORCES = 'cf'
+class IncrementNode extends Node {
+  public operation(data: number): number {
+    return data + 1;
+  }
 }
 
-class TimusAccount extends Account {}
-
-function createAccountPool() {
-  const account1 = new TimusAccount(
-    ESystemType.CODEFORCES,
-    'iprit',
-    '115563',
-    'IPRIT'
-  );
-
-  const account2 = new TimusAccount(
-    ESystemType.CODEFORCES,
-    'iprit2',
-    '115563',
-    'IPRIT'
-  );
-
-  return new AccountPool(
-    [account1, account2, account2, account1],
-    { inactivityTimeout: 5000 }
-  );
+class DecrementNode extends Node {
+  public operation(data: number): number {
+    return data - 1;
+  }
 }
 
-const pool = createAccountPool();
-
-pool.on(EAccountPoolEventType.TAKEN, ({ uniqueKey }) =>
-  console.log(`Taken: ${uniqueKey}`)
-);
-pool.on(EAccountPoolEventType.RELEASED, ({ uniqueKey }) =>
-  console.log(`Released: ${uniqueKey}`)
-);
-pool.on(EAccountPoolEventType.DESTROYED, () => {
-  clearInterval(updateInterval);
-  accounts = [];
-  console.log(`Pool "${pool.uniqueKey}" destroyed`);
-});
-
-const updateInterval = setInterval(() => {
-  pool.update();
-  console.log('Free size:', pool.freeSize);
-}, 1000);
-
-let accounts: Account[] = [];
-
-function take() {
-  accounts.push(pool.take());
+class DoubleNode extends Node {
+  public operation(data: number): number {
+    return data * 2;
+  }
 }
 
-function release() {
-  accounts.pop()?.free();
+class HalfNode extends Node {
+  public operation(data: number): number {
+    return data / 2;
+  }
 }
 
-setTimeout(() => {
-  take();
+const nodeA = new IncrementNode();
+const nodeB = new DoubleNode();
+const nodeC = new DecrementNode();
+const nodeD = new DoubleNode();
+const nodeE = new IncrementNode();
+const nodeF = new HalfNode();
 
-  setTimeout(() => {
-    take();
+nodeA.connect(nodeB);
+nodeB.connect(nodeC);
+nodeC.connect(nodeD);
+nodeD.connect(nodeE);
+nodeE.connect(nodeF);
 
-    setTimeout(() => {
-      release();
+nodeA.input(1);
 
-      setTimeout(() => {
-        release();
-      }, 2000);
-    }, 3000);
-  }, 2000);
-}, 3000);
+nodeF.on(ENodeEvent.OUTPUT, console.log);

@@ -10,10 +10,10 @@ import request, {
   Options as RequestOptions,
   RequestPromise
 } from 'request-promise';
-import { IAccountMeta, IAccountOptions } from '../../types/account';
+import { IAccountMeta, IAccountOptions } from '../../types';
 import { createOverloadError } from '../../utils/internal';
 
-export enum EAccountEventType {
+export enum EAccountEvent {
   TAKEN = 'taken',
   RELEASED = 'released'
 }
@@ -82,8 +82,8 @@ abstract class Account extends Requestable implements IKeyable, IUpdateable {
     }
 
     const eventType = this.prevTickAvailable
-      ? EAccountEventType.TAKEN
-      : EAccountEventType.RELEASED;
+      ? EAccountEvent.TAKEN
+      : EAccountEvent.RELEASED;
 
     this.emit(eventType, this);
 
