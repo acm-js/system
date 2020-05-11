@@ -9,7 +9,7 @@ export enum ENodeEvent {
   ERROR = 'error',
 }
 
-export class Node extends EventEmitter implements INode<any, any> {
+export class Node<T = any, R = any> extends EventEmitter implements INode<T, R> {
   public readonly uniqueKey = generateKey();
 
   protected connectedNodes: Map<Key, Node> = new Map();
