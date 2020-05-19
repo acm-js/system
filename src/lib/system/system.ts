@@ -5,5 +5,5 @@ export interface ISystem {
 }
 
 export class System extends EventEmitter implements ISystem {
-
+  public send: (solution: any) => any;
 }
