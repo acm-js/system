@@ -3,6 +3,7 @@ import { delay } from '@acm-js/core';
 import { ENodeEvent, Node } from './lib';
 import { Account, AccountPool, EAccountPoolEvent } from './lib/account';
 import { ENodeContextEvent, NodeContext } from './lib/node/node-context';
+import { System } from './lib/system/system';
 //
 // enum ESystemType {
 //   CODEFORCES = 'cf'
@@ -115,9 +116,19 @@ nodeC.connect(nodeD);
 nodeD.connect(nodeE);
 nodeE.connect(nodeF);
 nodeF.connect(context.destination);
-nodeF.connect(nodeA);
-nodeF.connect(nodeB);
 
 nodeA.input(1);
 
 context.on(ENodeContextEvent.FINISHED, console.log);
+
+
+class TimusSystem extends System {}
+
+const system = new TimusSystem();
+const context = system.send(solution);
+context.on('finish', (verdict) => {});
+// когда меняется вердикт (compiling -> testing -> OK)
+context.on('verdict-changed', (verdict) => {});
+// когда меняется статус проверки (queued -> account)
+context.on('status-changed', (verdict) => {});
+context.on('error', (error) => {});
