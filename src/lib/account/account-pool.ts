@@ -1,23 +1,25 @@
 import {
   bind,
   ETimePeriod,
-  freeze,
+  freeze, generateKey,
   IDestroyable,
   IKeyable,
-  IUpdateable
+  IUpdateable, Key
 } from '@acm-js/core';
 import { EventEmitter } from 'events';
-import { Account, EAccountEvent } from './';
+import { Account, EAccountEvent } from './account';
 import { registry } from './account-registry';
 
-export interface IAccountPoolOptions {
+export interface IAccountPoolOptions<TSystemType = string> {
+  systemType: TSystemType;
   inactivityTimeout?: number;
 }
 
 export enum EAccountPoolEvent {
-  RELEASED = 'released',
-  TAKEN = 'taken',
-  DESTROYED = 'destroyed'
+  DESTROYED = 'destroyed',
+
+  ACCOUNT_RELEASED = 'released',
+  ACCOUNT_TAKEN = 'taken',
 }
 
 export type TPredicate = (account: Account) => boolean;
@@ -26,9 +28,10 @@ export const predicates: Record<string, TPredicate> = {
   USING: (account: Account) => !account.isAvailable
 };
 
-export class AccountPool extends EventEmitter
+export class AccountPool<TSystemType = any> extends EventEmitter
   implements IUpdateable, IDestroyable, IKeyable {
-  public readonly type: string;
+  public readonly id: Key = generateKey();
+  public readonly type: TSystemType;
 
   protected accounts: Account[] = [];
 
@@ -37,11 +40,14 @@ export class AccountPool extends EventEmitter
 
   constructor(
     accounts: Account[] = [],
-    private readonly options: IAccountPoolOptions = {
-      inactivityTimeout: ETimePeriod.MINUTE * 5
+    private readonly options: IAccountPoolOptions<TSystemType> = {
+      inactivityTimeout: ETimePeriod.MINUTE * 5,
+      systemType: null
     }
   ) {
     super();
+
+    this.type = options.systemType;
 
     this.add(...accounts);
 
@@ -170,14 +176,14 @@ export class AccountPool extends EventEmitter
   private onAccountTaken(account: Account) {
     this.updateLastUsed();
 
-    this.emit(EAccountPoolEvent.TAKEN, account);
+    this.emit(EAccountPoolEvent.ACCOUNT_TAKEN, account);
   }
 
   @bind
   private onAccountReleased(account: Account) {
     this.updateLastUsed();
 
-    this.emit(EAccountPoolEvent.RELEASED, account);
+    this.emit(EAccountPoolEvent.ACCOUNT_RELEASED, account);
   }
 
   private get isExpired() {

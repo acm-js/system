@@ -124,11 +124,11 @@ context.on(ENodeContextEvent.FINISHED, console.log);
 
 class TimusSystem extends System {}
 
-/*const system = new TimusSystem();
+const system = new TimusSystem();
 const context = system.send(solution);
 context.on('finish', (verdict) => {});
 // когда меняется вердикт (compiling -> testing -> OK)
 context.on('verdict-changed', (verdict) => {});
 // когда меняется статус проверки (queued -> account)
 context.on('status-changed', (verdict) => {});
-context.on('error', (error) => {});*/
+context.on('error', (error) => {});
