@@ -1,6 +1,11 @@
 /* tslint:disable:no-console max-classes-per-file */
 import { delay } from '@acm-js/core';
-import { AccountPools, EAccountPoolLayer, Node } from './lib';
+import {
+  AccountPools,
+  EAccountPoolEvent,
+  EAccountPoolLayer,
+  Node
+} from './lib';
 import { Account } from './lib/account';
 import { ENodeContextEvent, NodeContext } from './lib/node/node-context';
 import { System } from './lib/system/system';
@@ -160,18 +165,27 @@ context.on('error', (error) => {});*/
 
 const pools = AccountPools.getInstance<TSystemType>();
 
-pools.createPool([account1, account2], {
-  inactivityTimeout: 5000,
+const pool1 = pools.createPool([account1, account2], {
+  inactivityTimeout: 10000,
   systemType: ESystemType.TIMUS
 }, EAccountPoolLayer.GLOBAL);
 
-pools.createPool([account3, account1], {
+const pool2 = pools.createPool([account3, account1], {
   inactivityTimeout: 5000,
   systemType: ESystemType.TIMUS
 }, EAccountPoolLayer.CONTEST, null, 2000);
+
+console.log(pools.getPool(ESystemType.TIMUS, EAccountPoolLayer.CONTEST, 2000));
 
 const updateInterval = setInterval(() => {
   pools.update();
 }, 1000);
 
+pool2.on(EAccountPoolEvent.DESTROYED, () => {
+  console.log(pools.getPool(ESystemType.TIMUS, EAccountPoolLayer.GLOBAL, 2000));
+});
+
+pool1.on(EAccountPoolEvent.DESTROYED, () => {
+  console.log(pools.getPool(ESystemType.TIMUS));
+});
 

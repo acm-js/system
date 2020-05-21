@@ -78,7 +78,6 @@ export class AccountPools<TSystemType> implements IUpdateable {
 
     pool.on(EAccountPoolEvent.DESTROYED, () => {
       this.pools.delete(key);
-      console.log(registry);
     });
 
     return pool;
