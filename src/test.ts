@@ -1,15 +1,40 @@
 /* tslint:disable:no-console max-classes-per-file */
 import { delay } from '@acm-js/core';
-import { ENodeEvent, Node } from './lib';
-import { Account, AccountPool, EAccountPoolEvent } from './lib/account';
+import { AccountPools, EAccountPoolLayer, Node } from './lib';
+import { Account } from './lib/account';
 import { ENodeContextEvent, NodeContext } from './lib/node/node-context';
 import { System } from './lib/system/system';
+
 //
-// enum ESystemType {
-//   CODEFORCES = 'cf'
-// }
+enum ESystemType {
+  CODEFORCES = 'cf',
+  TIMUS = 'timus'
+}
+type TSystemType = 'timus';
 //
-// class TimusAccount extends Account {}
+class TimusAccount extends Account {}
+
+const account1 = new TimusAccount(
+  ESystemType.TIMUS,
+  'iprit',
+  '115563',
+  'IPRIT'
+);
+
+const account2 = new TimusAccount(
+  ESystemType.TIMUS,
+  'iprit2',
+  '115563',
+  'IPRIT'
+);
+
+const account3 = new TimusAccount(
+  ESystemType.TIMUS,
+  'iprit3',
+  '115563',
+  'IPRIT'
+);
+
 //
 // function createAccountPool() {
 //   const account1 = new TimusAccount(
@@ -132,3 +157,21 @@ context.on('verdict-changed', (verdict) => {});
 // когда меняется статус проверки (queued -> account)
 context.on('status-changed', (verdict) => {});
 context.on('error', (error) => {});*/
+
+const pools = AccountPools.getInstance<TSystemType>();
+
+pools.createPool([account1, account2], {
+  inactivityTimeout: 5000,
+  systemType: ESystemType.TIMUS
+}, EAccountPoolLayer.GLOBAL);
+
+pools.createPool([account3, account1], {
+  inactivityTimeout: 5000,
+  systemType: ESystemType.TIMUS
+}, EAccountPoolLayer.CONTEST, null, 2000);
+
+const updateInterval = setInterval(() => {
+  pools.update();
+}, 1000);
+
+

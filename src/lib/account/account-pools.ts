@@ -5,6 +5,7 @@ import {
   EAccountPoolEvent,
   IAccountPoolOptions
 } from './account-pool';
+import { registry } from './account-registry';
 
 export enum EAccountPoolLayer {
   GLOBAL,
@@ -35,30 +36,38 @@ export class AccountPools<TSystemType> implements IUpdateable {
     return [ ...this.pools.values() ];
   }
 
-  public getPool(systemType: TSystemType, problemId: number, contestId: number) {
-    // layers with priority
-    const layers = [
-      EAccountPoolLayer.CONTEST,
-      EAccountPoolLayer.PROBLEM,
-      EAccountPoolLayer.GLOBAL,
-    ];
+  public getPool(
+    systemType: TSystemType,
+    layer: EAccountPoolLayer = EAccountPoolLayer.GLOBAL,
+    id?: number
+  ) {
+    if (layer === EAccountPoolLayer.GLOBAL) {
+      return this.pools.get(this.buildKey({ systemType, layer }));
+    }
 
-    return layers.map(layer => (
-      this.buildKey(systemType, layer, contestId, problemId)
-    )).map(key => (
-      this.pools.get(key)
-    )).find(pool => !!pool?.id)
+    if (layer === EAccountPoolLayer.PROBLEM) {
+      return this.pools.get(this.buildKey({ systemType, layer, problemId: id }));
+    }
+
+    if (layer === EAccountPoolLayer.CONTEST) {
+      return this.pools.get(this.buildKey({ systemType, layer, contestId: id }));
+    }
   }
 
   public createPool(
     accounts: Account[] = [],
     options: IAccountPoolOptions<TSystemType>,
     layer = EAccountPoolLayer.GLOBAL,
-    problemId: number,
-    contestId: number,
+    problemId?: number,
+    contestId?: number,
   ): AccountPool<TSystemType> {
     const pool = new AccountPool<TSystemType>(accounts, options);
-    const key = this.buildKey(pool.type, layer, problemId, contestId);
+    const key = this.buildKey({
+      contestId,
+      layer,
+      problemId,
+      systemType: pool.type
+    });
 
     const existingPool = this.pools.get(key);
     if (existingPool) {
@@ -69,6 +78,7 @@ export class AccountPools<TSystemType> implements IUpdateable {
 
     pool.on(EAccountPoolEvent.DESTROYED, () => {
       this.pools.delete(key);
+      console.log(registry);
     });
 
     return pool;
@@ -76,9 +86,9 @@ export class AccountPools<TSystemType> implements IUpdateable {
 
   public removePool(
     poolEntity: AccountPool<TSystemType> | Key | TSystemType,
-    layer: EAccountPoolLayer = EAccountPoolLayer.GLOBAL,
-    problemId: number,
-    contestId: number,
+    layer = EAccountPoolLayer.GLOBAL,
+    problemId?: number,
+    contestId?: number,
   ) {
     let pool: AccountPool<TSystemType>;
 
@@ -87,7 +97,13 @@ export class AccountPools<TSystemType> implements IUpdateable {
       pool = poolEntity as AccountPool<TSystemType>;
     } else {
       // get pool by key
-      const key = this.buildKey(poolEntity as TSystemType, layer, problemId, contestId);
+      const key = this.buildKey({
+        contestId,
+        layer,
+        problemId,
+        systemType: poolEntity as TSystemType
+      });
+
       pool = this.pools.get(key);
 
       if (!pool) {
@@ -104,12 +120,17 @@ export class AccountPools<TSystemType> implements IUpdateable {
     pool?.destroy();
   }
 
-  private buildKey(
+  private buildKey(params: {
     systemType: TSystemType,
     layer: EAccountPoolLayer,
-    problemId: number,
-    contestId: number,
-  ): Key {
+    problemId?: number,
+    contestId?: number,
+  }): Key {
+    const {
+      systemType, layer,
+      problemId, contestId,
+    } = params;
+
     const parts: Array<TSystemType | EAccountPoolLayer | number> = [systemType];
 
     if (layer === EAccountPoolLayer.PROBLEM) {
